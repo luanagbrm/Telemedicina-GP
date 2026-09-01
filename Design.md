@@ -1,9 +1,9 @@
 # Design Document — TeleMed+ (Prontuário Eletrônico Simplificado)
 
 **Versão:** 1.1  
-**Data:** [Preencher]  
+**Data:** 01/09/2026
 **Autoras:** Giulia Mattedi, Grazielle Almeida, Luana Macedo  
-**Disciplina:** [Nome da disciplina] — Prof. Mario Farah  
+**Disciplina:** Gestão de Projetos — Prof. Mario Farah  
 
 ---
 
