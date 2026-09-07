@@ -1,0 +1,22 @@
+# Lean dev setup — runtime essentials only (verified on Python 3.11–3.14).
+# Backend-specific libs (auth, WhatsApp/HTTP, admin panel, ML) are added by the
+# separate backend task.
+
+# ---- Web / API ----
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+
+# ---- Config / validation ----
+pydantic==2.13.5
+pydantic-settings==2.15.0
+
+# ---- Database (MySQL / Aiven) ----
+SQLAlchemy==2.0.52
+mysql-connector-python==26.7.0   # driver + TLS to Aiven (mysql+mysqlconnector://)
+
+# ---- Utilities ----
+python-dotenv==1.2.3
+
+# ---- Tests (needed to run tests/) ----
+pytest==8.3.4
+httpx==0.28.1                    # required by FastAPI's TestClient

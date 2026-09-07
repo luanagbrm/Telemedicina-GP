@@ -1,0 +1,29 @@
+services:
+  # Optional LOCAL MySQL for offline dev. The default DB is Aiven — if you use
+  # it, you can ignore this service. To use the local DB instead, set
+  # DB_HOST=127.0.0.1 and DB_SSL=false in .env.
+  mysql:
+    image: mysql:8.4
+    container_name: telemed-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_dev_pw
+      MYSQL_DATABASE: ${DB_NAME:-telemed}
+      MYSQL_USER: ${DB_USER:-telemed}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-telemed_dev_pw}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mysql-data:
