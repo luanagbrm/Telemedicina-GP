@@ -1,0 +1,45 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# ---- Virtual envs ----
+.venv/
+venv/
+env/
+ENV/
+
+# ---- Environment / secrets ----
+.env
+.env.*
+!.env.example
+
+# ---- Databases / local data ----
+*.sqlite3
+*.db
+mysql-data/
+ollama-data/
+
+# ---- Media / uploads (WhatsApp audio, etc.) ----
+media/
+tmp/
+*.ogg
+*.mp3
+*.wav
+
+# ---- Tooling ----
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# ---- IDE / OS ----
+.idea/
+*.swp
+.DS_Store
