@@ -5,11 +5,16 @@
 * O Hospital Higienópolis está localizado na Rua Marquês de Paranaguá, próximo à estação de metrô Higienópolis-Mackenzie.
 * Endereço completo: R. Marquês de Paranaguá, 111 - Cerqueira César, São Paulo - SP, 01303-050.
 
-### Operação
+### Operação Para Consultas
 
 * De segunda a sexta-feira: das 08:00 às 19:00.
 * Aos sábados: das 08:00 às 14:00.
 * Aos domingos: não há operação.
+
+### Operação Para Exames
+
+* De segunda a sexta-feira: das 07:00 às 16:00.
+* Não há operação para exames aos domingos e aos sábados
 
 ### Convênios aceitos
 
