@@ -1,0 +1,16 @@
+{
+  "traceSchema": "openclaw-trajectory",
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-10T21:12:33.792Z",
+  "traceId": "dc8a050b-d2ae-4467-ac9c-9fcc9b36c48d",
+  "sessionId": "dc8a050b-d2ae-4467-ac9c-9fcc9b36c48d",
+  "sessionKey": "agent:hospital:whatsapp:direct:+5511976091856",
+  "submittedPrompts": [
+    "Ola gostaria de agendar uma consulta de pediatria",
+    "Ola gostaria de agendar uma consulta de cardiologia",
+    "Quero com o Carlos de Oliveira e quero de noite",
+    "Manhã",
+    "Manha"
+  ],
+  "latestSubmittedPrompt": "Manha"
+}

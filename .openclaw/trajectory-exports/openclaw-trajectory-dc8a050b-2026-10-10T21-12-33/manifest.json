@@ -1,0 +1,48 @@
+{
+  "traceSchema": "openclaw-trajectory",
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-10T21:12:33.792Z",
+  "traceId": "dc8a050b-d2ae-4467-ac9c-9fcc9b36c48d",
+  "sessionId": "dc8a050b-d2ae-4467-ac9c-9fcc9b36c48d",
+  "sessionKey": "agent:hospital:whatsapp:direct:+5511976091856",
+  "workspaceDir": "$WORKSPACE_DIR",
+  "leafId": "1fabf079-97ae-428c-bd51-70d050701b9e",
+  "eventCount": 71,
+  "runtimeEventCount": 43,
+  "transcriptEventCount": 28,
+  "sourceFiles": {
+    "session": "agent:…1856"
+  },
+  "supplementalFiles": [
+    "metadata.json",
+    "artifacts.json",
+    "prompts.json"
+  ],
+  "contents": [
+    {
+      "path": "metadata.json",
+      "mediaType": "application/json",
+      "bytes": 7218
+    },
+    {
+      "path": "artifacts.json",
+      "mediaType": "application/json",
+      "bytes": 1509
+    },
+    {
+      "path": "prompts.json",
+      "mediaType": "application/json",
+      "bytes": 545
+    },
+    {
+      "path": "events.jsonl",
+      "mediaType": "application/x-ndjson",
+      "bytes": 209707
+    },
+    {
+      "path": "session-branch.json",
+      "mediaType": "application/json",
+      "bytes": 13939
+    }
+  ]
+}

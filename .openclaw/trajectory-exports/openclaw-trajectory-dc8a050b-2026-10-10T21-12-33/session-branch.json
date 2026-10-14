@@ -1,0 +1,345 @@
+{
+  "header": {
+    "type": "session",
+    "version": 4,
+    "id": "dc8a050b-d2ae-4467-ac9c-9fcc9b36c48d",
+    "timestamp": "2026-10-10T20:35:05.347Z",
+    "cwd": "$OPENCLAW_STATE_DIR/workspace/hospital"
+  },
+  "leafId": "1fabf079-97ae-428c-bd51-70d050701b9e",
+  "entries": [
+    {
+      "type": "message",
+      "id": "63ae8ed8-0a00-4a53-b7bc-9f9bd8c48a9f",
+      "parentId": null,
+      "timestamp": "2026-10-10T20:35:05.347Z",
+      "message": {
+        "role": "user",
+        "content": "Ola gostaria de agendar uma consulta de pediatria",
+        "timestamp": 1791664505000,
+        "idempotencyKey": "channel-user:v1:c39032dc2adf422e77bc3d0960bc07bb24670f330667af3d370eed8335c5091a",
+        "__openclaw": {
+          "senderIsOwner": false,
+          "senderId": "+5511976091856",
+          "senderName": "Grazi",
+          "senderIdentity": {
+            "type": "observation",
+            "id": "+5511976091856",
+            "pluginId": "whatsapp",
+            "accountId": "default",
+            "senderKind": "unknown"
+          },
+          "transport": {
+            "channel": "whatsapp",
+            "conversationRef": "conv_cb6b657219697398405cccf511092fdd",
+            "messageId": "AC20BBF877C15FF5F44D3552326A4B6D"
+          }
+        }
+      }
+    },
+    {
+      "type": "thinking_level_change",
+      "id": "8fe497f6-42f6-4fda-98ab-8e96c9dfa0ed",
+      "parentId": "63ae8ed8-0a00-4a53-b7bc-9f9bd8c48a9f",
+      "timestamp": "2026-10-10T20:35:05.401Z",
+      "thinkingLevel": "off"
+    },
+    {
+      "type": "custom",
+      "customType": "model-snapshot",
+      "data": {
+        "timestamp": 1791664505405,
+        "provider": "ollama",
+        "modelApi": "ollama",
+        "modelId": "qwen3:8b"
+      },
+      "id": "4e39cd90-cfeb-458f-813e-a4a3f5b387f1",
+      "parentId": "8fe497f6-42f6-4fda-98ab-8e96c9dfa0ed",
+      "timestamp": "2026-10-10T20:35:05.405Z"
+    },
+    {
+      "type": "message",
+      "id": "5c921934-a850-489d-83e4-51c7ecfc9f32",
+      "parentId": "4e39cd90-cfeb-458f-813e-a4a3f5b387f1",
+      "timestamp": "2026-10-10T20:37:52.273Z",
+      "message": {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "toolCall",
+            "id": "call_l2vuiyl9",
+            "name": "hospital_create_patient",
+            "arguments": {
+              "phone": "+5511976091856",
+              "nome_completo": "Grazi",
+              "cpf": "12345678900",
+              "data_nascimento": "01/01/2010",
+              "email": "grazi@example.com"
+            }
+          }
+        ],
+        "stopReason": "toolUse",
+        "api": "ollama",
+        "provider": "ollama",
+        "model": "qwen3:8b",
+        "usage": {
+          "input": 26549,
+          "output": 86,
+          "cacheRead": 94,
+          "cacheWrite": 0,
+          "cacheTelemetry": {
+            "state": "available"
+          },
+          "totalTokens": 26729,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0,
+            "total": 0
+          }
+        },
+        "timestamp": 1791664672268,
+        "turnId": "01a12789-4e0f-7190-bb32-94f147bc2d4e",
+        "__openclaw": {
+          "runId": "95454335-0937-4245-b3ae-5d8889a8b299"
+        }
+      }
+    },
+    {
+      "type": "message",
+      "id": "aefd08c3-cec1-410b-8459-63fde6bc392c",
+      "parentId": "5c921934-a850-489d-83e4-51c7ecfc9f32",
+      "timestamp": "2026-10-10T20:37:52.296Z",
+      "message": {
+        "role": "toolResult",
+        "toolCallId": "call_l2vuiyl9",
+        "toolName": "hospital_create_patient",
+        "content": [
+          {
+            "type": "text",
+            "text": "[Malformed diagnostic JSON redacted]"
+          }
+        ],
+        "details": {},
+        "isError": true,
+        "timestamp": 1791664672296,
+        "__openclaw": {
+          "runId": "95454335-0937-4245-b3ae-5d8889a8b299"
+        }
+      }
+    },
+    {
+      "type": "custom",
+      "customType": "openclaw.cache-ttl",
+      "data": {
+        "prunedToolResults": [],
+        "ambiguousToolResultBaseKeys": [],
+        "frozenToolResults": [
+          {
+            "key": "tool:c…2296",
+            "sourceHash": "91Ii4CAEUFupb3vbQlXPnOX67A9INaNXKqsCo_f7L5M"
+          }
+        ]
+      },
+      "id": "d634f11c-eda1-4583-909f-26eac2e6f9c0",
+      "parentId": "aefd08c3-cec1-410b-8459-63fde6bc392c",
+      "timestamp": "2026-10-10T20:37:52.300Z"
+    },
+    {
+      "type": "message",
+      "id": "eda4cffb-dad8-4494-ac07-f3b35a85c665",
+      "parentId": "d634f11c-eda1-4583-909f-26eac2e6f9c0",
+      "timestamp": "2026-10-10T20:37:58.039Z",
+      "message": {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "A data de nascimento deve estar no formato \"YYYY-MM-DD\". Por favor, forneça a data de nascimento em formato correto."
+          }
+        ],
+        "stopReason": "stop",
+        "api": "ollama",
+        "provider": "ollama",
+        "model": "qwen3:8b",
+        "usage": {
+          "input": 460,
+          "output": 31,
+          "cacheRead": 26382,
+          "cacheWrite": 0,
+          "cacheTelemetry": {
+            "state": "available"
+          },
+          "totalTokens": 26873,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0,
+            "total": 0
+          }
+        },
+        "timestamp": 1791664678034,
+        "__openclaw": {
+          "runId": "95454335-0937-4245-b3ae-5d8889a8b299"
+        }
+      }
+    },
+    {
+      "type": "message",
+      "id": "b448c084-898e-4509-be16-987422140f0c",
+      "parentId": "eda4cffb-dad8-4494-ac07-f3b35a85c665",
+      "timestamp": "2026-10-10T21:06:59.481Z",
+      "message": {
+        "role": "user",
+        "content": "Ola gostaria de agendar uma consulta de cardiologia",
+        "timestamp": 1791666419000,
+        "idempotencyKey": "channel-user:v1:2d0e253ee4ee17024dc9d14089f700140425679f249e34cd83e1a2c4dc944cd4",
+        "__openclaw": {
+          "senderIsOwner": false,
+          "senderId": "+5511976091856",
+          "senderName": "Grazi",
+          "senderIdentity": {
+            "type": "observation",
+            "id": "+5511976091856",
+            "pluginId": "whatsapp",
+            "accountId": "default",
+            "senderKind": "unknown"
+          },
+          "transport": {
+            "channel": "whatsapp",
+            "conversationRef": "conv_cb6b657219697398405cccf511092fdd",
+            "messageId": "AC2E674121649A47B5F17AB87F4D10A0"
+          }
+        }
+      }
+    },
+    {
+      "type": "message",
+      "id": "9cd768b2-7a5a-4894-99f3-566f848196e1",
+      "parentId": "b448c084-898e-4509-be16-987422140f0c",
+      "timestamp": "2026-10-10T21:09:11.667Z",
+      "message": {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "toolCall",
+            "id": "call_v84p0ahd",
+            "name": "hospital_list_doctors",
+            "arguments": {
+              "specialty_id": "Cardiologia"
+            }
+          }
+        ],
+        "stopReason": "toolUse",
+        "api": "ollama",
+        "provider": "ollama",
+        "model": "qwen3:8b",
+        "usage": {
+          "input": 26889,
+          "output": 26,
+          "cacheRead": 0,
+          "cacheWrite": 0,
+          "cacheTelemetry": {
+            "state": "available"
+          },
+          "totalTokens": 26915,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0,
+            "total": 0
+          }
+        },
+        "timestamp": 1791666551651,
+        "turnId": "01a127a5-fb6d-7441-b001-f801a6627541",
+        "__openclaw": {
+          "runId": "f99aae44-df88-43dc-a0c8-786aa8650195"
+        }
+      }
+    },
+    {
+      "type": "message",
+      "id": "95e84508-60f0-4200-aa3b-3e133c3dec44",
+      "parentId": "9cd768b2-7a5a-4894-99f3-566f848196e1",
+      "timestamp": "2026-10-10T21:09:12.331Z",
+      "message": {
+        "role": "toolResult",
+        "toolCallId": "call_v84p0ahd",
+        "toolName": "hospital_list_doctors",
+        "content": [
+          {
+            "type": "text",
+            "text": "{\n  \"http_status\": 200,\n  \"response\": {\n    \"items\": [\n      {\n        \"id\": 20,\n        \"nome\": \"Aline Correia\",\n        \"especialidade_id\": 7,\n        \"especialidade_nome\": \"Oncologia\"\n      },\n      {\n        \"id\": 8,\n        \"nome\": \"André Rodrigues\",\n        \"especialidade_id\": 3,\n        \"especialidade_nome\": \"Ortopedia\"\n      },\n      {\n        \"id\": 11,\n        \"nome\": \"Beatriz Lima\",\n        \"especialidade_id\": 4,\n        \"especialidade_nome\": \"Clinica Geral\"\n      },\n      {\n        \"id\": 21,\n        \"nome\": \"Bruno Castro\",\n        \"especialidade_id\": 7,\n        \"especialidade_nome\": \"Oncologia\"\n      },\n      {\n        \"id\": 9,\n        \"nome\": \"Camila Ferreira\",\n        \"especialidade_id\": 3,\n        \"especialidade_nome\": \"Ortopedia\"\n      },\n      {\n        \"id\": 1,\n        \"nome\": \"Carlos Almeida\",\n        \"especialidade_id\": 1,\n        \"especialidade_nome\": \"Cardiologia\"\n      },\n      {\n        \"id\": 22,\n        \"nome\": \"Daniel Vieira\",\n        \"especialidade_id\": 8,\n        \"especialidade_nome\": \"Neurologia\"\n      },\n      {\n        \"id\": 18,\n        \"nome\": \"Eduardo Barbosa\",\n        \"especialidade_id\": 6,\n        \"especialidade_nome\": \"Gastroenterologia\"\n      },\n      {\n        \"id\": 24,\n        \"nome\": \"Felipe Cardoso\",\n        \"especialidade_id\": 8,\n        \"especialidade_nome\": \"Neurologia\"\n      },\n      {\n        \"id\": 5,\n        \"nome\": \"Fernanda Souza\",\n        \"especialidade_id\": 2,\n        \"especialidade_nome\": \"Dermatologia\"\n      },\n      {\n        \"id\": 12,\n        \"nome\": \"Gabriel Rocha\",\n        \"especialidade_id\": 4,\n        \"especialidade_nome\": \"Clinica Geral\"\n      },\n      {\n        \"id\": 15,\n        \"nome\": \"Isabela Gomes\",\n        \"especialidade_id\": 5,\n        \"especialidade_nome\": \"Pediatria\"\n      },\n      {\n        \"id\": 4,\n        \"nome\": \"Juliana Martins\",\n        \"especialidade_id\": 2,\n        \"especialidade_nome\": \"Dermatologia\"\n      },\n      {\n        \"id\": 13,\n        \"nome\": \"Larissa Carvalho\",\n        \"especialidade_id\": 5,\n        \"especialidade_nome\": \"Pediatria\"\n      },\n      {\n        \"id\": 6,\n        \"nome\": \"Lucas Pereira\",\n        \"especialidade_id\": 2,\n        \"especialidade_nome\": \"Dermatologia\"\n      },\n      {\n        \"id\": 14,\n        \"nome\": \"Marcos Ribeiro\",\n        \"especialidade_id\": 5,\n        \"especialidade_nome\": \"Pediatria\"\n      },\n      {\n        \"id\": 2,\n        \"nome\": \"Mariana Oliveira\",\n        \"especialidade_id\": 1,\n        \"especialidade_nome\": \"Cardiologia\"\n      },\n      {\n        \"id\": 23,\n        \"nome\": \"Natália Monteiro\",\n        \"especialidade_id\": 8,\n        \"especialidade_nome\": \"Neurologia\"\n      },\n      {\n        \"id\": 17,\n        \"nome\": \"Patrícia Moreira\",\n        \"especialidade_id\": 6,\n        \"especialidade_nome\": \"Gastroenterologia\"\n      },\n      {\n        \"id\": 10,\n        \"nome\": \"Paulo Mendes\",\n        \"especialidade_id\": 4,\n        \"especialidade_nome\": \"Clinica Geral\"\n      },\n      {\n        \"id\": 3,\n        \"nome\": \"Rafael Costa\",\n        \"especialidade_id\": 1,\n        \"especialidade_nome\": \"Cardiologia\"\n      },\n      {\n        \"id\": 19,\n        \"nome\": \"Renato Teixeira\",\n        \"especialidade_id\": 7,\n        \"especialidade_nome\": \"Oncologia\"\n      },\n      {\n        \"id\": 7,\n        \"nome\": \"Ricardo Santos\",\n        \"especialidade_id\": 3,\n        \"especialidade_nome\": \"Ortopedia\"\n      },\n      {\n        \"id\": 16,\n        \"nome\": \"Thiago Nascimento\",\n        \"especialidade_id\": 6,\n        \"especialidade_nome\": \"Gastroenterologia\"\n      }\n    ],\n    \"total\": 24\n  }\n}"
+          }
+        ],
+        "details": {
+          "http_status": 200,
+          "response": {
+            "items": [
+              {
+                "id": 20,
+                "nome": "Aline Correia",
+                "especialidade_id": 7,
+                "especialidade_nome": "Oncologia"
+              },
+              {
+                "id": 8,
+                "nome": "André Rodrigues",
+                "especialidade_id": 3,
+                "especialidade_nome": "Ortopedia"
+              },
+              {
+                "id": 11,
+                "nome": "Beatriz Lima",
+                "especialidade_id": 4,
+                "especialidade_nome": "Clinica Geral"
+              },
+              "[Truncated]",
+              "[Truncated]",
+              "[Truncated]",
+              "[Truncated]",
+              "[Truncated]",
+              "[Truncated]",
+              "[Truncated]",
+              "[Truncated]",
+              "[Truncated]",
+              "[Truncated]",
+              "[Truncated]",
+              "[Truncated]",
+              "[Truncated]",
+              "[Truncated]",
+              "[Truncated]",
+              "[Truncated]",
+              "[Truncated]",
+              "[Truncated]",
+              "[Truncated]",
+              "[Truncated]",
+              "[Truncated]"
+            ],
+            "total": 24
+          }
+        },
+        "isError": false,
+        "timestamp": 1791666552328,
+        "__openclaw": "[Truncated]"
+      }
+    },
+    "[Truncated]",
+    "[Truncated]",
+    "[Truncated]",
+    "[Truncated]",
+    "[Truncated]",
+    "[Truncated]",
+    "[Truncated]",
+    "[Truncated]",
+    "[Truncated]",
+    "[Truncated]",
+    "[Truncated]",
+    "[Truncated]",
+    "[Truncated]",
+    "[Truncated]"
+  ]
+}

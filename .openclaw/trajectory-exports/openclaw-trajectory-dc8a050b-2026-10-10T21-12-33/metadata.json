@@ -1,0 +1,272 @@
+{
+  "traceSchema": "openclaw-trajectory",
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-10T21:12:33.792Z",
+  "traceId": "dc8a050b-d2ae-4467-ac9c-9fcc9b36c48d",
+  "sessionId": "dc8a050b-d2ae-4467-ac9c-9fcc9b36c48d",
+  "sessionKey": "agent:hospital:whatsapp:direct:+5511976091856",
+  "harness": {
+    "type": "openclaw",
+    "name": "OpenClaw",
+    "version": "2026.9.4",
+    "os": {
+      "platform": "darwin",
+      "arch": "arm64",
+      "release": "25.6.0",
+      "label": "macos 26.7.1 (arm64)"
+    },
+    "runtime": {
+      "node": "v26.5.0"
+    },
+    "invocation": [
+      "/usr/local/bin/node",
+      "~/.local/lib/node_modules/openclaw/dist/index.js",
+      "gateway",
+      "--port",
+      "18789"
+    ],
+    "entrypoint": "~/.local/lib/node_modules/openclaw/dist/index.js",
+    "workspaceDir": "$OPENCLAW_STATE_DIR/workspace/hospital",
+    "sessionFile": "$OPENCLAW_STATE_DIR/agent:hospital:whatsapp:direct:+5511976091856"
+  },
+  "model": {
+    "provider": "ollama",
+    "name": "qwen3:8b",
+    "api": "ollama",
+    "fastMode": false,
+    "thinkLevel": "off",
+    "reasoningLevel": "off"
+  },
+  "config": {
+    "redacted": {
+      "meta": {
+        "lastTouchedVersion": "2026.9.4",
+        "migrations": {
+          "modelPolicyAllowlist": true
+        }
+      },
+      "wizard": {
+        "lastRunAt": "2026-09-13T18:49:58.538Z",
+        "lastRunVersion": "2026.9.4",
+        "lastRunCommand": "doctor",
+        "lastRunMode": "local",
+        "securityAcknowledgedAt": "2026-08-15T18:09:52.045Z"
+      },
+      "auth": {
+        "profiles": {
+          "google:default": {
+            "provider": "google",
+            "mode": "api_key"
+          }
+        }
+      },
+      "models": {
+        "providers": {
+          "ollama": {
+            "baseUrl": "http://127.0.0.1:11434",
+            "api": "ollama",
+            "timeoutSeconds": 240,
+            "models": {
+              "truncated": true,
+              "reason": "trajectory-depth-limit",
+              "limitDepth": 6
+            }
+          }
+        }
+      },
+      "agents": {
+        "ownership": "explicit",
+        "defaults": {
+          "model": {
+            "primary": "ollama/qwen3:8b"
+          },
+          "models": {
+            "google/gemini-3-flash-preview": {
+              "truncated": true,
+              "reason": "trajectory-depth-limit",
+              "limitDepth": 6
+            },
+            "google/gemini-3.5-flash": {
+              "truncated": true,
+              "reason": "trajectory-depth-limit",
+              "limitDepth": 6
+            },
+            "ollama/qwen3:8b": {
+              "truncated": true,
+              "reason": "trajectory-depth-limit",
+              "limitDepth": 6
+            }
+          },
+          "modelPolicy": {
+            "allow": {
+              "truncated": true,
+              "reason": "trajectory-depth-limit",
+              "limitDepth": 6
+            }
+          },
+          "workspace": "$OPENCLAW_STATE_DIR/workspace",
+          "heartbeat": {
+            "agentId": "main"
+          },
+          "systemAgent": {
+            "agentId": "main"
+          },
+          "maxConcurrent": 12,
+          "subagents": {
+            "maxConcurrent": 8,
+            "archiveAfterMinutes": 60
+          },
+          "compaction": {
+            "mode": "safeguard"
+          }
+        },
+        "entries": {
+          "main": {
+            "workspace": "$OPENCLAW_STATE_DIR/workspace"
+          },
+          "hospital": {
+            "name": "hospital",
+            "workspace": "$OPENCLAW_STATE_DIR/workspace/hospital",
+            "agentDir": "$OPENCLAW_STATE_DIR/agents/hospital/agent",
+            "bootstrapMaxChars": 50000,
+            "bootstrapTotalMaxChars": 200000,
+            "tools": {
+              "truncated": true,
+              "reason": "trajectory-depth-limit",
+              "limitDepth": 6
+            }
+          }
+        }
+      },
+      "tools": {
+        "profile": "coding",
+        "toolSearch": false
+      },
+      "bindings": [
+        {
+          "type": "route",
+          "agentId": "hospital",
+          "match": {
+            "channel": "whatsapp",
+            "accountId": "default"
+          }
+        }
+      ],
+      "commands": {
+        "native": "auto",
+        "nativeSkills": "auto",
+        "restart": true
+      },
+      "session": {
+        "dmScope": "per-channel-peer"
+      },
+      "hooks": {
+        "internal": {
+          "entries": {
+            "session-memory": {
+              "truncated": true,
+              "reason": "trajectory-depth-limit",
+              "limitDepth": 6
+            }
+          }
+        }
+      },
+      "channels": {
+        "whatsapp": {
+          "enabled": true,
+          "selfChatMode": true,
+          "dmPolicy": "open",
+          "allowFrom": [
+            "*"
+          ],
+          "groupAllowFrom": [
+            "11976091856"
+          ],
+          "groupPolicy": "allowlist",
+          "mediaMaxMb": 50
+        }
+      },
+      "gateway": {
+        "port": 18789,
+        "mode": "local",
+        "bind": "loopback",
+        "auth": {
+          "mode": "token"
+        },
+        "tailscale": {
+          "mode": "off"
+        },
+        "nodes": {
+          "commands": {
+            "deny": {
+              "truncated": true,
+              "reason": "trajectory-depth-limit",
+              "limitDepth": 6
+            }
+          }
+        }
+      },
+      "skills": {
+        "install": {
+          "nodeManager": "npm"
+        },
+        "entries": {
+          "apple-notes": {
+            "enabled": false
+          },
+          "apple-reminders": {
+            "enabled": false
+          },
+          "bear-notes": {
+            "enabled": false
+          },
+          "blogwatcher": {
+            "enabled": false
+          },
+          "blucli": {
+            "enabled": false
+          },
+          "camsnap": {
+            "enabled": false
+          },
+          "coding-agent": "[Truncated]",
+          "eightctl": "[Truncated]",
+          "gemini": "[Truncated]",
+          "gifgrep": "[Truncated]",
+          "gog": "[Truncated]",
+          "goplaces": "[Truncated]",
+          "himalaya": "[Truncated]",
+          "mcporter": "[Truncated]",
+          "model-usage": "[Truncated]",
+          "nano-pdf": "[Truncated]",
+          "obsidian": "[Truncated]",
+          "openai-whisper": "[Truncated]",
+          "openai-whisper-api": "[Truncated]",
+          "openhue": "[Truncated]",
+          "oracle": "[Truncated]",
+          "ordercli": "[Truncated]",
+          "peekaboo": "[Truncated]",
+          "sag": "[Truncated]",
+          "sherpa-onnx-tts": "[Truncated]",
+          "songsee": "[Truncated]",
+          "sonoscli": "[Truncated]",
+          "spotify-player": "[Truncated]",
+          "summarize": "[Truncated]",
+          "things-mac": "[Truncated]",
+          "tmux": "[Truncated]",
+          "trello": "[Truncated]",
+          "wacli": "[Truncated]",
+          "xurl": "[Truncated]"
+        }
+      },
+      "plugins": "[Truncated]",
+      "messages": "[Truncated]"
+    },
+    "runtime": "[Truncated]"
+  },
+  "plugins": "[Truncated]",
+  "skills": "[Truncated]",
+  "prompting": "[Truncated]",
+  "redaction": "[Truncated]",
+  "metadata": "[Truncated]"
+}

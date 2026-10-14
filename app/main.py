@@ -13,6 +13,7 @@ from fastapi import FastAPI
 
 from app import __version__
 from app.api.routes import health
+from app.api.routes import hospital
 from app.config import settings
 
 logging.basicConfig(
@@ -30,6 +31,7 @@ app = FastAPI(
 )
 
 app.include_router(health.router)
+app.include_router(hospital.router)
 
 
 @app.get("/", tags=["root"])

@@ -47,6 +47,34 @@ Acesse:
 `/health/db` executa um `SELECT 1` — é a prova de que a conexão com o banco está
 funcionando.
 
+### Endpoints do chatbot (scaffold)
+
+Os endpoints abaixo ja estao prontos e conectados na API para voce preencher os SQLs:
+
+- `GET /hospital/patients/by-phone/{telefone}`
+- `POST /hospital/patients`
+- `POST /hospital/insurance`
+- `POST /hospital/appointments`
+- `GET /hospital/appointments/my?appointment_type=consulta|exame`
+- `POST /hospital/appointments/cancel`
+- `GET /hospital/doctors/schedule?data=YYYY-MM-DD&periodo=morning&doctor_name=...&specialty=...`
+- `GET /hospital/calendar/specialties`
+- `GET /hospital/calendar/doctors?specialty_id=...`
+- `GET /hospital/calendar/dates?periodo=morning&specialty_id=...&doctor_id=...`
+- `GET /hospital/calendar/slots?data=YYYY-MM-DD&periodo=morning&specialty_id=...&doctor_id=...`
+
+Observacao para `POST /hospital/patients`:
+
+- `telefone` nao vai no body.
+- Envie o numero via header `X-Patient-Phone` (ideal para dados vindos do webhook do WhatsApp/OpenClaw).
+
+Onde preencher as queries:
+
+- `app/services/hospital_sql.py`
+
+Enquanto os SQLs estiverem com `-- TODO`, os endpoints retornam `501 Not Implemented`
+com uma mensagem explicando qual template falta preencher.
+
 ---
 
 ## 3. Estrutura do projeto

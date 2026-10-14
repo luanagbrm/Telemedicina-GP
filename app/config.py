@@ -5,6 +5,7 @@ development). See .env.example for the full list of variables.
 """
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 from urllib.parse import quote_plus
 
@@ -13,8 +14,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    _PROJECT_ROOT = Path(__file__).resolve().parent.parent
     model_config = SettingsConfigDict(
-        env_file=".env",
+        # Always resolve the project's .env even if uvicorn is launched from another cwd.
+        env_file=str(_PROJECT_ROOT / ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
         case_sensitive=False,
