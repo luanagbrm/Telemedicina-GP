@@ -1,0 +1,70 @@
+{
+  "traceSchema": "openclaw-trajectory",
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-14T21:04:34.550Z",
+  "traceId": "c86b8763-07f0-453f-b3e9-857df6152b6e",
+  "sessionId": "c86b8763-07f0-453f-b3e9-857df6152b6e",
+  "sessionKey": "agent:hospital:whatsapp:direct:+5511976091856",
+  "finalStatus": "success",
+  "aborted": false,
+  "externalAbort": false,
+  "timedOut": false,
+  "idleTimedOut": false,
+  "timedOutDuringCompaction": false,
+  "timedOutDuringToolExecution": false,
+  "timedOutByRunBudget": false,
+  "promptErrorSource": null,
+  "usage": {
+    "input": 1496,
+    "output": 121,
+    "cacheRead": 29669,
+    "cacheWrite": 0,
+    "total": 31286,
+    "cost": {
+      "total": 0
+    }
+  },
+  "promptCache": {
+    "lastCallUsage": {
+      "input": 788,
+      "output": 69,
+      "cacheRead": 14904,
+      "cacheWrite": 0,
+      "cost": {
+        "total": 0
+      },
+      "total": 15761
+    },
+    "lastCacheTouchAt": 1792011856877
+  },
+  "compactionCount": 0,
+  "assistantTexts": [
+    "Olá, Grazi! Infelizmente, não há disponibilidade de horários para o médico Carlos Almeida em neurologia nas próximas semanas. Vamos verificar se há outros médicos disponíveis ou se há datas alternativas que possam funcionar para você. Posso ajudar a encontrar outra opção."
+  ],
+  "stopReason": "stop",
+  "finalPromptText": "2",
+  "itemLifecycle": {
+    "startedCount": 2,
+    "completedCount": 2,
+    "activeCount": 0
+  },
+  "toolMetas": [
+    {
+      "toolName": "hospital_list_available_slots",
+      "replaySafe": false,
+      "toolCallId": "tool_search_code:call_suqfbv5c:hospital_list_available_slots:1",
+      "isError": false
+    },
+    {
+      "toolName": "tool_call",
+      "replaySafe": false,
+      "toolCallId": "call_suqfbv5c",
+      "isError": false
+    }
+  ],
+  "didSendViaMessagingTool": false,
+  "successfulCronAdds": 0,
+  "messagingToolSentTexts": [],
+  "messagingToolSentMediaUrls": [],
+  "messagingToolSentTargets": []
+}
