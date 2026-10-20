@@ -25,6 +25,7 @@ from app.services.hospital_service import (
     get_calendar_slots,
     get_calendar_specialties,
     get_doctor_schedule,
+    list_insurance_options,
     get_patient_appointments_by_phone,
     upsert_convenio,
 )
@@ -67,6 +68,16 @@ def post_insurance(payload: ConvenioUpsertRequest, db: Session = Depends(get_db)
         return upsert_convenio(db, payload.model_dump())
     except SQLTemplateNotFilledError as exc:
         raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail=str(exc)) from exc
+
+
+@router.get("/insurance/options")
+def get_insurance_options(db: Session = Depends(get_db)) -> dict:
+    """Returns insurance names to present as options in WhatsApp list/buttons."""
+    try:
+        items = list_insurance_options(db)
+    except SQLTemplateNotFilledError as exc:
+        raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail=str(exc)) from exc
+    return {"items": items, "total": len(items)}
 
 
 @router.post("/appointments", status_code=status.HTTP_201_CREATED)

@@ -57,6 +57,15 @@ def upsert_convenio(db: Session, payload: dict[str, Any]) -> dict[str, Any]:
     return {"ok": True, "rows_affected": result.rowcount}
 
 
+def list_insurance_options(db: Session) -> list[dict[str, Any]]:
+    return _run_select(
+        db,
+        hospital_sql.GET_INSURANCE_OPTIONS_SQL,
+        "GET_INSURANCE_OPTIONS_SQL",
+        {},
+    )
+
+
 def create_appointment(
     db: Session,
     appointment_type: str,

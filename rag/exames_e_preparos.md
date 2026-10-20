@@ -20,6 +20,7 @@
 ## EXAME: HEMOGRAMA
 
 - Nome do exame: Hemograma
+- Preço(caso o paciente escolha a opção de pagamento particular): 80 reais que deve ser pago da presencialmente com a recepcionista
 - Tipo: Laboratório
 - Horário de realização: segunda-feira a sexta-feira, das 07:00 às 11:30
 - Duração do exame: aproximadamente 10 minutos
@@ -27,10 +28,10 @@
 - Jejum: 8 horas para adultos e 6 horas para crianças
 - Preparo: Realizar jejum de 8 horas para adultos ou 6 horas para crianças. Durante o jejum, o paciente pode beber água, salvo orientação diferente.
 
-
 ## EXAME: GLICEMIA
 
 - Nome do exame: Glicemia
+- Preço(caso o paciente escolha a opção de pagamento particular): 30 reais que deve ser pago da presencialmente com a recepcionista
 - Tipo: Laboratório
 - Horário de realização: segunda-feira a sexta-feira, das 07:00 às 11:30
 - Duração do exame: aproximadamente 10 minutos
@@ -42,6 +43,7 @@
 ## EXAME: COLESTEROL
 
 - Nome do exame: Colesterol
+- Preço(caso o paciente escolha a opção de pagamento particular): 30 reais que deve ser pago da presencialmente com a recepcionista
 - Tipo: Laboratório
 - Horário de realização: segunda-feira a sexta-feira, das 07:00 às 11:30
 - Duração do exame: aproximadamente 10 minutos
@@ -53,6 +55,7 @@
 ## EXAME: URINA
 
 - Nome do exame: Exame de urina
+- Preço(caso o paciente escolha a opção de pagamento particular): 50 reais que deve ser pago da presencialmente com a recepcionista
 - Tipo: Laboratório
 - Horário de realização: segunda-feira a sexta-feira, das 07:00 às 11:30
 - Duração do exame: aproximadamente 10 minutos para coleta
@@ -65,6 +68,7 @@
 ## EXAME: RAIO-X
 
 - Nome do exame: Raio-X
+- Preço(caso o paciente escolha a opção de pagamento particular): 210 reais que deve ser pago da presencialmente com a recepcionista
 - Tipo: Imagem
 - Horário de realização: segunda-feira a sexta-feira, das 07:00 às 16:00
 - Duração do exame: aproximadamente 15 minutos
@@ -74,6 +78,7 @@
 ## EXAME: ULTRASSONOGRAFIA
 
 - Nome do exame: Ultrassonografia
+- Preço(caso o paciente escolha a opção de pagamento particular): 350 reais que deve ser pago da presencialmente com a recepcionista
 - Tipo: Imagem
 - Horário de realização: segunda-feira a sexta-feira, das 07:00 às 16:00
 - Duração do exame: aproximadamente 30 minutos
@@ -83,6 +88,7 @@
 ## EXAME: TOMOGRAFIA
 
 - Nome do exame: Tomografia computadorizada
+- Preço(caso o paciente escolha a opção de pagamento particular): 1900 reais que deve ser pago da presencialmente com a recepcionista
 - Tipo: Imagem
 - Horário de realização: segunda-feira a sexta-feira, das 07:00 às 16:00
 - Duração do exame: aproximadamente 30 minutos
@@ -92,6 +98,7 @@
 ## EXAME: RESSONÂNCIA MAGNÉTICA
 
 - Nome do exame: Ressonância magnética
+- Preço(caso o paciente escolha a opção de pagamento particular): 2500 reais que deve ser pago da presencialmente com a recepcionista
 - Tipo: Imagem
 - Horário de realização: segunda-feira a sexta-feira, das 07:00 às 16:00
 - Duração do exame: aproximadamente 30 a 60 minutos
@@ -101,6 +108,7 @@
 ## EXAME: ELETROCARDIOGRAMA
 
 - Nome do exame: Eletrocardiograma
+- Preço(caso o paciente escolha a opção de pagamento particular): 80 reais que deve ser pago da presencialmente com a recepcionista
 - Tipo: Procedimento
 - Horário de realização: segunda-feira a sexta-feira, das 07:00 às 16:00
 - Duração do exame: aproximadamente 10 minutos
@@ -110,6 +118,7 @@
 ## EXAME: ENDOSCOPIA
 
 - Nome do exame: Endoscopia digestiva alta
+- Preço(caso o paciente escolha a opção de pagamento particular): 500 reais que deve ser pago da presencialmente com a recepcionista
 - Tipo: Procedimento
 - Horário de realização: segunda-feira a sexta-feira, das 07:00 às 16:00
 - Duração do exame: aproximadamente 30 minutos
@@ -120,6 +129,7 @@
 ## EXAME: FEZES
 
 - Nome do exame: Exame de fezes
+- Preço(caso o paciente escolha a opção de pagamento particular): 80 reais que deve ser pago da presencialmente com a recepcionista
 - Tipo: Laboratório
 - Horário de realização: segunda-feira a sexta-feira, das 07:00 às 11:30
 - Duração do exame: aproximadamente 10 minutos para entrega da amostra

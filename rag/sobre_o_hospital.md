@@ -10,6 +10,7 @@
 * De segunda a sexta-feira: das 08:00 às 19:00.
 * Aos sábados: das 08:00 às 14:00.
 * Aos domingos: não há operação.
+* Todas as consultas são presenciais(não fazemos consultas por telemedicina)
 
 ### Operação Para Exames
 
@@ -30,3 +31,10 @@ O Hospital Higienópolis aceita os seguintes convênios:
 * Prevent Senior
 * Porto Saúde (Porto Seguro)
 * Omint
+
+### Pagamento Particular de Consultas
+
+Todas as consultas são no valor de 400 reais e o pagamento da taxa deve ser realizado presencialmente com a recepcionista antes da consulta
+
+
+

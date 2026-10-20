@@ -16,7 +16,13 @@ LIMIT 1;
 # 2) Create a new patient when chatbot collects all info.
 CREATE_PATIENT_SQL = """
 INSERT INTO paciente (nome_completo, telefone, cpf, data_nascimento, email, carteirinha_id)
-VALUES (:nome_completo, :telefone, :cpf, :data_nascimento, :email, :carteirinha_id);
+VALUES (:nome_completo, :telefone, :cpf, :data_nascimento, :email, :carteirinha_id)
+ON DUPLICATE KEY UPDATE
+    nome_completo = VALUES(nome_completo),
+    cpf = VALUES(cpf),
+    data_nascimento = VALUES(data_nascimento),
+    email = VALUES(email),
+    carteirinha_id = VALUES(carteirinha_id);
 """
 
 # 3) Schedule a medical consultation.
@@ -154,6 +160,15 @@ VALUES (:carteirinha_id, :nome, :data_de_expiracao)
 ON DUPLICATE KEY UPDATE
     nome = VALUES(nome),
     data_de_expiracao = VALUES(data_de_expiracao);
+"""
+
+# 14b) List insurance options shown in scheduling flow.
+GET_INSURANCE_OPTIONS_SQL = """
+SELECT DISTINCT nome
+FROM convenio
+WHERE nome IS NOT NULL
+  AND nome <> ''
+ORDER BY nome;
 """
 
 # 15) List scheduled consultations for the patient identified by WhatsApp phone.

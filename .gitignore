@@ -43,3 +43,6 @@ coverage.xml
 .idea/
 *.swp
 .DS_Store
+
+# ---- OpenClaw (AI gateway state, trajectory exports, sessions) ----
+.openclaw/
