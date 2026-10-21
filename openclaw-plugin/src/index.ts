@@ -767,7 +767,12 @@ async function saveSchedulerStore(store: Record<string, SchedulerState>): Promis
 }
 
 function cleanPhone(phone: string): string {
-  return phone.trim();
+  let p = phone.trim().replace(/\s/g, "");
+  // Strip any leading zeros or extra characters, then ensure +55 prefix.
+  if (p.startsWith("+55")) return p;
+  if (p.startsWith("55") && p.length >= 12) return `+${p}`;
+  // Raw local number (e.g. 11976091856 or 11998983666) — prepend +55
+  return `+55${p.replace(/^\+/, "")}`;
 }
 
 function isResetIntent(message: string): boolean {
