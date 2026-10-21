@@ -1,0 +1,30 @@
+{
+  "id": "telemed-fastapi-tools",
+  "name": "Telemed Fastapi Tools",
+  "description": "Hospital tools that call the existing TeleMed FastAPI endpoints.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "baseUrl": {
+        "type": "string",
+        "description": "FastAPI base URL, e.g. http://127.0.0.1:8000"
+      },
+      "apiKey": {
+        "type": "string",
+        "description": "Optional API key for X-API-Key header."
+      }
+    },
+    "additionalProperties": false
+  },
+  "activation": {
+    "onStartup": true
+  },
+  "contracts": {
+    "tools": [
+      "hospital_scheduler_step",
+      "hospital_list_my_appointments",
+      "hospital_cancel_appointment"
+    ]
+  }
+}

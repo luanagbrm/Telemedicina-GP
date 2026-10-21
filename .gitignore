@@ -46,3 +46,8 @@ coverage.xml
 
 # ---- OpenClaw (AI gateway state, trajectory exports, sessions) ----
 .openclaw/
+
+# ---- OpenClaw plugin build artifacts ----
+openclaw-plugin/node_modules/
+openclaw-plugin/dist/
+openclaw-plugin/.scheduler-state.json
