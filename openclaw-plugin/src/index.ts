@@ -1145,17 +1145,31 @@ async function schedulerStep(args: {
       await saveSchedulerStore(store);
       return { ok: true, response: { reply_text: "Voce nao tem consultas agendadas no momento.", phase: "done" } };
     }
-    const cancelOptions = appts.map((a) => ({
+
+    const allOptions = appts.map((a) => ({
       id: Number(a.appointment_id),
       specialty: String(a.specialty_name ?? ""),
       specialty_id: toInt(a.specialty_id as LooseInt),
+      doctor: String(a.doctor_name ?? ""),
       label: `${weekdayPt(String(a.data ?? ""))}, ${formatDatePt(String(a.data ?? ""))} ${normalizeTime(String(a.horario ?? ""))} — ${a.specialty_name ?? "Consulta"} com ${a.doctor_name ?? ""}`,
     }));
+
+    // Try to narrow by specialty or doctor name mentioned in the message.
+    const needle = normalizeText(message);
+    let cancelOptions = allOptions.filter((o) => {
+      const spec = normalizeText(o.specialty);
+      const doc = normalizeText(o.doctor);
+      return spec && (needle.includes(spec) || spec.split(" ").some((w) => w.length >= 4 && needle.includes(w))) ||
+             doc && (needle.includes(doc) || doc.split(" ").some((w) => w.length >= 4 && needle.includes(w)));
+    });
+    // Fall back to full list if filter matched nothing
+    if (cancelOptions.length === 0) cancelOptions = allOptions;
+
     const newState: SchedulerState = { phase: "cancel_list", cancelOptions, phaseEnteredAt: Date.now() };
     store[phone] = newState;
-    await saveSchedulerStore(store);
+
+    // Single match — skip list, go straight to confirmation
     if (cancelOptions.length === 1) {
-      // Skip the list and go straight to confirm
       const single = cancelOptions[0];
       newState.phase = "cancel_confirm";
       newState.selectedCancel = single;
@@ -1169,8 +1183,11 @@ async function schedulerStep(args: {
         },
       };
     }
+
+    // Multiple matches — show numbered list
+    await saveSchedulerStore(store);
     const listOpts = cancelOptions.map((o, i) => ({ id: i + 1, label: o.label }));
-    return { ok: true, response: { reply_text: numberedList("Qual consulta deseja cancelar?", listOpts), phase: state?.phase ?? "cancel_list" } };
+    return { ok: true, response: { reply_text: numberedList("Qual consulta deseja cancelar?", listOpts), phase: "cancel_list" } };
   }
   // ── End cancel flow ───────────────────────────────────────────────────────
 
