@@ -28,7 +28,8 @@ ON DUPLICATE KEY UPDATE
 # 3) Schedule a medical consultation.
 CREATE_CONSULTA_SQL = """
 INSERT INTO consulta (id_paciente, id_agenda, status)
-VALUES (:patient_id, :agenda_id, :status);
+VALUES (:patient_id, :agenda_id, :status)
+ON DUPLICATE KEY UPDATE status = :status;
 """
 
 # 4) Schedule an exam.
@@ -86,10 +87,13 @@ SELECT
     m.id,
     m.nome,
     m.especialidade_id,
-    e.nome AS especialidade_nome
+    e.nome AS especialidade_nome,
+    GROUP_CONCAT(DISTINCT a.periodo ORDER BY a.periodo SEPARATOR ',') AS periodos
 FROM medico m
 JOIN especialidade e ON e.id = m.especialidade_id
+LEFT JOIN agenda a ON a.id_medico = m.id
 WHERE (:specialty_id IS NULL OR m.especialidade_id = :specialty_id)
+GROUP BY m.id, m.nome, m.especialidade_id, e.nome
 ORDER BY m.nome;
 """
 
