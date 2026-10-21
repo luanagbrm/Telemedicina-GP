@@ -14,14 +14,14 @@ from app.config import settings
 
 
 def _build_connect_args() -> dict[str, Any]:
-    """DBAPI connect kwargs for mysql-connector-python (charset + TLS)."""
+    """DBAPI connect kwargs for PyMySQL (charset + TLS)."""
     args: dict[str, Any] = {"charset": "utf8mb4"}
     # TLS: managed MySQL (Aiven) requires it; local dev DB usually doesn't.
-    args["ssl_disabled"] = not settings.db_ssl
-    if settings.db_ssl and settings.db_ssl_ca:
-        # When a CA is provided, verify the server certificate against it.
-        args["ssl_ca"] = settings.db_ssl_ca
-        args["ssl_verify_cert"] = True
+    if settings.db_ssl:
+        ssl_args: dict[str, Any] = {}
+        if settings.db_ssl_ca:
+            ssl_args["ca"] = settings.db_ssl_ca
+        args["ssl"] = ssl_args
     return args
 
 

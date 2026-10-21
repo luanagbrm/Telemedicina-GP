@@ -51,7 +51,7 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def sqlalchemy_database_uri(self) -> str:
-        """Full SQLAlchemy connection string (MySQL via mysql-connector-python).
+        """Full SQLAlchemy connection string (MySQL via PyMySQL).
 
         SSL/charset are applied through connect_args in app/database.py, not here.
         """
@@ -60,7 +60,7 @@ class Settings(BaseSettings):
         user = quote_plus(self.db_user)
         password = quote_plus(self.db_password)
         return (
-            f"mysql+mysqlconnector://{user}:{password}"
+            f"mysql+pymysql://{user}:{password}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
         )
 
