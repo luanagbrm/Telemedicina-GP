@@ -166,6 +166,14 @@ ON DUPLICATE KEY UPDATE
     data_de_expiracao = VALUES(data_de_expiracao);
 """
 
+# 14a) Fetch a convenio by carteirinha_id (to pre-fill insurance on returning patients).
+GET_CONVENIO_BY_CARTEIRINHA_SQL = """
+SELECT carteirinha_id, nome, data_de_expiracao
+FROM convenio
+WHERE carteirinha_id = :carteirinha_id
+LIMIT 1;
+"""
+
 # 14b) List insurance options shown in scheduling flow.
 GET_INSURANCE_OPTIONS_SQL = """
 SELECT DISTINCT nome

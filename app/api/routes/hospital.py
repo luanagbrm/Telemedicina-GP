@@ -26,6 +26,7 @@ from app.services.hospital_service import (
     get_calendar_specialties,
     get_doctor_schedule,
     list_insurance_options,
+    get_convenio_by_carteirinha,
     get_patient_appointments_by_phone,
     upsert_convenio,
 )
@@ -68,6 +69,15 @@ def post_insurance(payload: ConvenioUpsertRequest, db: Session = Depends(get_db)
         return upsert_convenio(db, payload.model_dump())
     except SQLTemplateNotFilledError as exc:
         raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail=str(exc)) from exc
+
+
+@router.get("/insurance/by-carteirinha/{carteirinha_id}")
+def get_insurance_by_carteirinha(carteirinha_id: str, db: Session = Depends(get_db)) -> dict:
+    """Returns the convenio record for a given carteirinha_id."""
+    result = get_convenio_by_carteirinha(db, carteirinha_id)
+    if not result:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Convenio not found")
+    return {"found": True, "convenio": result}
 
 
 @router.get("/insurance/options")

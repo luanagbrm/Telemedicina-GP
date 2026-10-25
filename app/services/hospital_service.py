@@ -57,6 +57,16 @@ def upsert_convenio(db: Session, payload: dict[str, Any]) -> dict[str, Any]:
     return {"ok": True, "rows_affected": result.rowcount}
 
 
+def get_convenio_by_carteirinha(db: Session, carteirinha_id: str) -> dict[str, Any] | None:
+    rows = _run_select(
+        db,
+        hospital_sql.GET_CONVENIO_BY_CARTEIRINHA_SQL,
+        "GET_CONVENIO_BY_CARTEIRINHA_SQL",
+        {"carteirinha_id": carteirinha_id},
+    )
+    return rows[0] if rows else None
+
+
 def list_insurance_options(db: Session) -> list[dict[str, Any]]:
     return _run_select(
         db,
