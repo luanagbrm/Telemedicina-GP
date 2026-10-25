@@ -64,8 +64,8 @@ function normalizePeriod(value?: string): "morning" | "afternoon" | "evening" | 
   const v = normalizeText(value);
 
   if (v === "1") return "morning";
-  if (v === "2") return "afternoon";
-  if (v === "3") return "evening";
+  if (v === "2") return "evening"; // "tarde" shift is stored as "evening" in the DB
+  if (v === "3") return "evening"; // no separate "noite" in DB — treat same as tarde
 
   if (isNewBookingIntent(value) && !isBareChoice(value)) return undefined;
 
@@ -75,17 +75,13 @@ function normalizePeriod(value?: string): "morning" | "afternoon" | "evening" | 
   if (v === "manha" || v === "amanha" || v === "matina" || v.startsWith("manh") || v.includes("manha")) {
     return "morning";
   }
-  if (v === "tarde" || v.startsWith("tard") || v.includes("tarde") || v === "afternon" || v === "afternoom") {
-    return "afternoon";
-  }
+  // "tarde", "noite" and "afternoon" all map to "evening" because the hospital
+  // stores its afternoon/evening shift as "evening" in the agenda table.
   if (
-    v === "noite" ||
-    v.startsWith("noit") ||
-    v.includes("noite") ||
-    v === "vespertino" ||
-    v === "notie" || // transposition typo
-    v === "evning" || // common typo
-    v === "evenning"
+    v === "tarde" || v.startsWith("tard") || v.includes("tarde") ||
+    v === "afternon" || v === "afternoom" || v === "afternoon" ||
+    v === "noite" || v.startsWith("noit") || v.includes("noite") ||
+    v === "vespertino" || v === "notie" || v === "evning" || v === "evenning"
   ) {
     return "evening";
   }
@@ -370,12 +366,11 @@ async function buildWeekSchedule(
       response: {
         ok: false,
         reason: "missing_period",
-        reply_text: "Qual periodo voce prefere?\n1) Manha\n2) Tarde\n3) Noite",
-        message: "Periodo obrigatorio. Peça para escolher: manha, tarde ou noite.",
+        reply_text: "Qual periodo voce prefere?\n1) Manha\n2) Tarde",
+        message: "Periodo obrigatorio. Peça para escolher: manha ou tarde.",
         choices: [
           { option_id: "period:morning", value: "morning", label: "Manha" },
-          { option_id: "period:afternoon", value: "afternoon", label: "Tarde" },
-          { option_id: "period:evening", value: "evening", label: "Noite" },
+          { option_id: "period:evening", value: "evening", label: "Tarde" },
         ],
       },
     };
@@ -639,7 +634,8 @@ async function resolveSpecialtyId(
 
 function formatPeriodos(periodos: string | null | undefined): string {
   if (!periodos) return "";
-  const map: Record<string, string> = { morning: "manha", afternoon: "tarde", evening: "noite" };
+  // "evening" is the DB label for the afternoon/tarde shift (13:00–17:30)
+  const map: Record<string, string> = { morning: "manha", afternoon: "tarde", evening: "tarde" };
   return periodos.split(",").map((p) => map[p.trim()] ?? p.trim()).join(" e ");
 }
 
@@ -719,12 +715,15 @@ type SchedulerPhase =
   | "patient_birth"
   | "patient_email"
   | "payment"
+  | "insurance_confirm"
   | "insurance_plan"
   | "insurance_card"
   | "insurance_expiration"
   | "cancel_list"
   | "cancel_confirm"
-  | "reschedule_prompt";
+  | "reschedule_prompt"
+  | "reschedule_list"
+  | "reschedule_what";
 
 type SchedulerOption = {
   id?: number;
@@ -748,8 +747,13 @@ type SchedulerState = {
   selectedSlot?: SchedulerOption;
   slotPhaseEnteredAt?: number;
   phaseEnteredAt?: number;
-  cancelOptions?: Array<{ id: number; label: string; specialty?: string; specialty_id?: number }>;
-  selectedCancel?: { id: number; label: string; specialty?: string; specialty_id?: number };
+  cancelOptions?: Array<{ id: number; label: string; specialty?: string; specialty_id?: number; doctor?: string; doctor_id?: number; agenda_id?: number }>;
+  selectedCancel?: { id: number; label: string; specialty?: string; specialty_id?: number; doctor?: string; doctor_id?: number; agenda_id?: number };
+  rescheduleOptions?: Array<{ id: number; label: string; specialty?: string; specialty_id?: number; doctor?: string; doctor_id?: number; agenda_id?: number }>;
+  selectedReschedule?: { id: number; label: string; specialty?: string; specialty_id?: number; doctor?: string; doctor_id?: number; agenda_id?: number };
+  reschedulingAppointmentId?: number;
+  reschedulePeriodHint?: "morning" | "afternoon" | "evening";
+  rescheduleDateHint?: string;
   patient?: Record<string, unknown>;
   patientDraft?: {
     nome_completo?: string;
@@ -802,10 +806,53 @@ function isCancelIntent(message: string): boolean {
   );
 }
 
+function isRescheduleIntent(message: string): boolean {
+  const text = normalizeText(message);
+  if (isCancelIntent(message)) return false;
+  return (
+    text.includes("reagendar") ||
+    text.includes("remarcar") ||
+    text.includes("remarcacao") ||
+    text.includes("remarcamento") ||
+    (text.includes("mudar") && (text.includes("horario") || text.includes("consulta") || text.includes("data"))) ||
+    (text.includes("trocar") && (text.includes("horario") || text.includes("consulta") || text.includes("data"))) ||
+    (text.includes("alterar") && (text.includes("horario") || text.includes("consulta") || text.includes("data")))
+  );
+}
+
+function parseDayHint(message: string): string | undefined {
+  const text = normalizeText(message);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (text.includes("amanha") || text.includes("amanhã")) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().slice(0, 10);
+  }
+  const dayNames = ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"];
+  for (let i = 0; i < dayNames.length; i++) {
+    if (text.includes(dayNames[i])) {
+      const targetDay = i; // 0=sun, 1=mon, ...6=sat
+      const currentDay = today.getDay();
+      let diff = targetDay - currentDay;
+      if (diff <= 0) diff += 7; // always at least next occurrence
+      // "semana que vem" or "que vem" => push an extra week
+      if ((text.includes("semana que vem") || text.includes("proxima semana") || text.includes("que vem")) && diff < 7) {
+        diff += 7;
+      }
+      const d = new Date(today);
+      d.setDate(d.getDate() + diff);
+      return d.toISOString().slice(0, 10);
+    }
+  }
+  return undefined;
+}
+
 function isNewBookingIntent(message: string): boolean {
   const text = normalizeText(message);
-  // Don't treat cancel messages as new booking intent
+  // Don't treat cancel or reschedule messages as new booking intent
   if (isCancelIntent(message)) return false;
+  if (isRescheduleIntent(message)) return false;
   return (
     text.includes("consulta") ||
     text.includes("agendar") ||
@@ -837,14 +884,28 @@ function selectOptionByName(options: SchedulerOption[] | undefined, message: str
   const needle = normalizeText(message);
   if (!needle) return undefined;
   const tokens = needle.split(/[^a-z0-9]+/).filter((token) => token.length >= 4);
-  const matches = options.filter((option) => {
+
+  // Exact / substring match first
+  const exact = options.filter((option) => {
     const label = normalizeText(option.label);
     if (!label) return false;
     if (label === needle || needle.includes(label)) return true;
     return tokens.some((token) => label === token || label.startsWith(token) || token.startsWith(label));
   });
-  if (matches.length === 0) return undefined;
-  return [...matches].sort((a, b) => normalizeText(b.label).length - normalizeText(a.label).length)[0];
+  if (exact.length > 0) return [...exact].sort((a, b) => normalizeText(b.label).length - normalizeText(a.label).length)[0];
+
+  // Stem match — handles "clinico" ↔ "clinica", "pediatrico" ↔ "pediatria", etc.
+  const STEM_LEN = 5;
+  const stemmed = options.filter((option) => {
+    const labelWords = normalizeText(option.label).split(/\s+/);
+    return tokens.some((token) => {
+      if (token.length < STEM_LEN) return false;
+      const tStem = token.slice(0, STEM_LEN);
+      return labelWords.some((word) => word.length >= STEM_LEN && word.slice(0, STEM_LEN) === tStem);
+    });
+  });
+  if (stemmed.length === 0) return undefined;
+  return [...stemmed].sort((a, b) => normalizeText(b.label).length - normalizeText(a.label).length)[0];
 }
 
 function selectOption(options: SchedulerOption[] | undefined, message: string): SchedulerOption | undefined {
@@ -862,7 +923,7 @@ function numberedList(title: string, options: SchedulerOption[]): string {
 }
 
 function periodReply(): string {
-  return "Qual periodo voce prefere?\n1) Manha\n2) Tarde\n3) Noite\nResponda com o numero da opcao.";
+  return "Qual periodo voce prefere?\n1) Manha\n2) Tarde\nResponda com o numero da opcao.";
 }
 
 function dateOptionsFromWeekItems(items: Array<{ date: string; weekday: string; slots: Array<JsonRecord> }>): SchedulerOption[] {
@@ -938,6 +999,117 @@ async function upsertPatientFromState(
   return getPatientByPhone(baseUrl, apiKey, phone);
 }
 
+type StepResult = Promise<{ ok: boolean; response: { reply_text: string; phase: string } }>;
+
+async function enterRescheduleWhat(
+  store: Record<string, SchedulerState>,
+  phone: string,
+  state: SchedulerState,
+  baseUrl: string,
+  apiKey: string | undefined,
+): StepResult {
+  state.phase = "reschedule_what";
+  state.phaseEnteredAt = Date.now();
+  store[phone] = state;
+  await saveSchedulerStore(store);
+  const appt = state.selectedReschedule!;
+  return {
+    ok: true,
+    response: {
+      reply_text: `Consulta encontrada:\n${appt.label}\n\nO que deseja mudar?\n1) Apenas a data/horario\n2) O medico tambem`,
+      phase: state.phase,
+    },
+  };
+}
+
+async function buildDatePhase(
+  baseUrl: string,
+  apiKey: string | undefined,
+  store: Record<string, SchedulerState>,
+  phone: string,
+  state: SchedulerState,
+  preferredDate?: string,
+): StepResult {
+  type WeekData = { items?: Array<{ date: string; weekday: string; slots: Array<JsonRecord> }> };
+  const doctorId = (state.doctor as SchedulerOption | null | undefined)?.id;
+
+  // If period is missing, ask for it before fetching dates
+  if (!state.period) {
+    state.phase = "period";
+    state.phaseEnteredAt = Date.now();
+    store[phone] = state;
+    await saveSchedulerStore(store);
+    return { ok: true, response: { reply_text: periodReply(), phase: "period" } };
+  }
+
+  // Fetch week(s) of available dates for the current specialty/doctor/period
+  const week = await buildWeekSchedule(baseUrl, apiKey, {
+    periodo: state.period ?? undefined,
+    specialty_id: state.specialty?.id,
+    doctor_id: doctorId,
+  });
+  const thisWeekData = (week.thisWeek as WeekData | null | undefined)?.items ?? [];
+  const nextWeekData = (week.nextWeek as WeekData | null | undefined)?.items ?? [];
+  let dateOptions = dateOptionsFromWeekItems(thisWeekData);
+  if (dateOptions.length === 0) {
+    dateOptions = dateOptionsFromWeekItems(nextWeekData);
+  }
+
+  // If a preferred date was given, check if it's in the list and put it first
+  if (preferredDate && dateOptions.length > 0) {
+    const matchIdx = dateOptions.findIndex((d) => d.date === preferredDate);
+    if (matchIdx > 0) {
+      const [match] = dateOptions.splice(matchIdx, 1);
+      dateOptions.unshift(match);
+    } else if (matchIdx === -1) {
+      // Preferred date not available — fetch slots for that specific date
+      const slotsResp = await callBackend({
+        baseUrl, apiKey, method: "GET", path: "/hospital/calendar/slots",
+        query: {
+          data: preferredDate,
+          periodo: state.period ?? undefined,
+          specialty_id: state.specialty?.id,
+          doctor_id: doctorId,
+        },
+      });
+      const slotsForDay = extractItemsArray(slotsResp.response).filter((s) => slotMatchesState(s as JsonRecord, state));
+      if (slotsForDay.length > 0) {
+        const slotOptions: SchedulerOption[] = slotsForDay.map((slot) => ({
+          label: normalizeTime(String((slot as JsonRecord).horario ?? "")),
+          date: preferredDate,
+          agenda_id: toInt((slot as JsonRecord).agenda_id as LooseInt),
+        }));
+        state.slotOptions = slotOptions;
+        state.slotPhaseEnteredAt = Date.now();
+        state.phase = "slot";
+        store[phone] = state;
+        await saveSchedulerStore(store);
+        return {
+          ok: true,
+          response: {
+            reply_text: numberedList(`Horarios disponiveis para ${formatDatePt(preferredDate)}:`, slotOptions),
+            phase: "slot",
+          },
+        };
+      }
+    }
+  }
+
+  if (dateOptions.length === 0) {
+    delete store[phone];
+    await saveSchedulerStore(store);
+    return { ok: false, response: { reply_text: "Nao ha vagas disponiveis para os filtros escolhidos. Por favor, entre em contato com a recepção.", phase: "done" } };
+  }
+
+  state.dateOptions = dateOptions;
+  state.phase = "date";
+  state.phaseEnteredAt = Date.now();
+  store[phone] = state;
+  await saveSchedulerStore(store);
+  return { ok: true, response: { reply_text: numberedList("Escolha uma data:", dateOptions), phase: "date" } };
+
+}
+
 async function finishSchedulerBooking(
   baseUrl: string,
   apiKey: string | undefined,
@@ -987,11 +1159,22 @@ async function finishSchedulerBooking(
   const response = appointment.response as Record<string, unknown> | null;
   const appointmentStatus = Number(appointment.http_status);
   if (appointmentStatus >= 200 && appointmentStatus < 300 && response?.ok === true) {
+    // If rescheduling: cancel old appointment now that new one is confirmed
+    if (state.reschedulingAppointmentId) {
+      await callBackend({
+        baseUrl,
+        apiKey,
+        method: "POST",
+        path: "/hospital/appointments/cancel",
+        body: { appointment_type: "consulta", appointment_id: state.reschedulingAppointmentId, status: "cancelada" },
+      }).catch(() => { /* best-effort */ });
+    }
+    const isReschedule = Boolean(state.reschedulingAppointmentId);
     const specialty = state.specialty?.label ?? "";
     const doctor = state.doctor?.label ? `Dr(a). ${state.doctor.label}` : "";
     const slot = state.selectedSlot?.label ?? "o horario escolhido";
     const lines = [
-      `Consulta agendada com sucesso! ✅`,
+      isReschedule ? `Consulta reagendada com sucesso! ✅` : `Consulta agendada com sucesso! ✅`,
       ``,
       `📋 Especialidade: ${specialty}`,
       doctor ? `👨‍⚕️ Medico(a): ${doctor}` : "",
@@ -1024,6 +1207,7 @@ async function promptDoctorChoice(
   phone: string,
   state: SchedulerState,
   selected: SchedulerOption,
+  originalMessage?: string,
 ): Promise<JsonRecord> {
   const doctors = await listDoctors(baseUrl, apiKey, selected.id);
   const doctorOptions = doctors.map((d) => {
@@ -1033,7 +1217,42 @@ async function promptDoctorChoice(
   });
   state.specialty = selected;
   state.phase = "doctor";
+  state.phaseEnteredAt = Date.now();
   state.dateOptions = doctorOptions;
+
+  // If patient already mentioned a doctor in the same message, auto-select and skip to calendar.
+  // Only attempt this when there is an explicit doctor indicator to avoid false positives.
+  if (originalMessage) {
+    const msgNorm = normalizeText(originalMessage);
+    const hasDoctorIndicator =
+      / com /.test(msgNorm) ||
+      /\bdr\.?\b/.test(msgNorm) ||
+      /\bdra\.?\b/.test(msgNorm) ||
+      msgNorm.includes("doutor") ||
+      msgNorm.includes("doutora") ||
+      msgNorm.includes("medico") ||
+      msgNorm.includes("medica");
+    if (hasDoctorIndicator) {
+      const preSelected = selectOptionByName(doctorOptions, originalMessage);
+      if (preSelected) {
+        state.doctor = preSelected;
+        const periodos = preSelected.value ? preSelected.value.split(",").map((p) => p.trim()).filter(Boolean) : [];
+        const periodHint = normalizePeriod(originalMessage);
+        const dayHint = parseDayHint(originalMessage);
+        if (periodos.length === 1) state.period = normalizePeriod(periodos[0]) ?? undefined;
+        else if (periodHint) state.period = periodHint;
+        store[phone] = state;
+        return buildDatePhase(baseUrl, apiKey, store, phone, state, dayHint);
+      }
+    }
+    // Patient said "qualquer" or "any doctor"
+    if (msgNorm.includes("qualquer") || msgNorm.includes("any")) {
+      state.doctor = null;
+      store[phone] = state;
+      return buildDatePhase(baseUrl, apiKey, store, phone, state, parseDayHint(originalMessage));
+    }
+  }
+
   store[phone] = state;
   await saveSchedulerStore(store);
   return {
@@ -1126,9 +1345,14 @@ async function schedulerStep(args: {
       return { ok: false, response: { reply_text: "Nao foi possivel cancelar a consulta. Por favor, entre em contato com a recepção.", phase: "done" } };
     }
     // Success — ask about rescheduling
-    const specialty = state.selectedCancel?.specialty;
-    const specialtyId = state.selectedCancel?.specialty_id;
-    state = { phase: "reschedule_prompt", phaseEnteredAt: Date.now(), specialty: specialtyId ? { id: specialtyId, label: specialty ?? "" } : undefined };
+    const cancelledAppt = state.selectedCancel!;
+    const specialty = cancelledAppt.specialty;
+    state = {
+      phase: "reschedule_prompt",
+      phaseEnteredAt: Date.now(),
+      specialty: cancelledAppt.specialty_id ? { id: cancelledAppt.specialty_id, label: specialty ?? "" } : undefined,
+      selectedReschedule: cancelledAppt,
+    };
     store[phone] = state;
     await saveSchedulerStore(store);
     return {
@@ -1151,20 +1375,136 @@ async function schedulerStep(args: {
       await saveSchedulerStore(store);
       return { ok: true, response: { reply_text: "Tudo bem! Até logo e cuide-se. 😊", phase: "done" } };
     }
-    // Start new booking with specialty pre-selected if available
-    const savedSpecialty = state.specialty;
-    if (savedSpecialty?.id) {
-      const newState: SchedulerState = { phase: "specialty" };
-      store[phone] = newState;
-      return promptDoctorChoice(args.baseUrl, args.apiKey, store, phone, newState, savedSpecialty);
+    // Go to reschedule_what so patient can choose: same doctor or change doctor
+    if (state.selectedReschedule) {
+      return enterRescheduleWhat(store, phone, state, args.baseUrl, args.apiKey);
     }
-    // No specialty — show full specialty list
+    // Fallback (no cancelled appointment info): show specialty list
     const specialties = await listSpecialties(args.baseUrl, args.apiKey);
     const options = specialties.map((s) => ({ id: s.id, label: s.nome }));
     const newState: SchedulerState = { phase: "specialty", dateOptions: options };
     store[phone] = newState;
     await saveSchedulerStore(store);
     return { ok: true, response: { reply_text: numberedList("Otimo! Escolha a especialidade para o novo agendamento:", options), phase: "specialty" } };
+  }
+
+  // ── Reschedule list phase ──────────────────────────────────────────────────
+  if (state?.phase === "reschedule_list") {
+    if (state.phaseEnteredAt && Date.now() - state.phaseEnteredAt < 8000) {
+      const opts = (state.rescheduleOptions ?? []).map((o, i) => ({ id: i + 1, label: o.label }));
+      return { ok: false, response: { reply_text: numberedList("Qual consulta deseja reagendar?", opts), phase: state.phase } };
+    }
+    const opts = state.rescheduleOptions ?? [];
+    let chosen: typeof opts[number] | undefined;
+    const idx = toInt(message.trim());
+    if (idx !== undefined && idx >= 1 && idx <= opts.length) chosen = opts[idx - 1];
+    if (!chosen) {
+      const listOpts = opts.map((o, i) => ({ id: i + 1, label: o.label }));
+      return { ok: false, response: { reply_text: numberedList("Escolha a consulta pelo numero:", listOpts), phase: state.phase } };
+    }
+    state.selectedReschedule = chosen;
+    return enterRescheduleWhat(store, phone, state, args.baseUrl, args.apiKey);
+  }
+
+  // ── Reschedule what phase ─────────────────────────────────────────────────
+  if (state?.phase === "reschedule_what") {
+    if (state.phaseEnteredAt && Date.now() - state.phaseEnteredAt < 8000) {
+      return {
+        ok: false,
+        response: {
+          reply_text: `O que deseja mudar?\n1) Apenas a data/horario\n2) O medico tambem`,
+          phase: state.phase,
+        },
+      };
+    }
+    const text = normalizeText(message);
+    const isTwo = text === "2" || text.includes("medico") || text.includes("doutor") || text.includes("trocar medico") || text.includes("mudar medico");
+    const apptId = state.selectedReschedule?.id;
+    if (!apptId) {
+      delete store[phone];
+      await saveSchedulerStore(store);
+      return { ok: false, response: { reply_text: "Nao consegui identificar a consulta. Por favor, tente novamente.", phase: "done" } };
+    }
+    state.reschedulingAppointmentId = apptId;
+    if (isTwo) {
+      // Change doctor → show doctor list for that specialty
+      const reschedSpec = state.selectedReschedule!;
+      const specOpt: SchedulerOption = { id: reschedSpec.specialty_id, label: reschedSpec.specialty ?? "" };
+      state.specialty = specOpt;
+      store[phone] = state;
+      return promptDoctorChoice(args.baseUrl, args.apiKey, store, phone, state, specOpt);
+    }
+    // Keep same doctor → pre-fill and go to date selection
+    const reschedSpec = state.selectedReschedule!;
+    state.specialty = { id: reschedSpec.specialty_id, label: reschedSpec.specialty ?? "" };
+    state.doctor = reschedSpec.doctor_id ? { id: reschedSpec.doctor_id, label: reschedSpec.doctor ?? "" } : null;
+    state.period = state.reschedulePeriodHint ?? undefined;
+    store[phone] = state;
+    return buildDatePhase(args.baseUrl, args.apiKey, store, phone, state);
+  }
+
+  // ── Detect reschedule intent at any point (outside an active reschedule/cancel flow) ──
+  if (isRescheduleIntent(message) && !state?.phase?.startsWith("reschedule") && !(state?.phase as string | undefined)?.startsWith("cancel")) {
+    const apptResp = await callBackend({ baseUrl: args.baseUrl, apiKey: args.apiKey, method: "GET", path: "/hospital/appointments/my", phone });
+    const appts = extractItemsArray(apptResp.response) as Array<Record<string, unknown>>;
+    if (appts.length === 0) {
+      delete store[phone];
+      await saveSchedulerStore(store);
+      return { ok: true, response: { reply_text: "Voce nao tem consultas agendadas no momento.", phase: "done" } };
+    }
+
+    // Parse hints from message
+    const periodHint = normalizePeriod(message);
+    const dayHint = parseDayHint(message);
+
+    const allOptions = appts.map((a) => ({
+      id: Number(a.appointment_id),
+      specialty: String(a.specialty_name ?? ""),
+      specialty_id: toInt(a.specialty_id as LooseInt),
+      doctor: String(a.doctor_name ?? ""),
+      doctor_id: toInt(a.doctor_id as LooseInt),
+      agenda_id: toInt(a.agenda_id as LooseInt),
+      label: `${weekdayPt(String(a.data ?? ""))}, ${formatDatePt(String(a.data ?? ""))} ${normalizeTime(String(a.horario ?? ""))} — ${a.specialty_name ?? "Consulta"} com ${a.doctor_name ?? ""}`,
+    }));
+
+    // Narrow by specialty/doctor mentioned in the message
+    const needle = normalizeText(message);
+    let filteredOptions = allOptions.filter((o) => {
+      const spec = normalizeText(o.specialty);
+      const doc = normalizeText(o.doctor);
+      return (spec && (needle.includes(spec) || spec.split(" ").some((w) => w.length >= 4 && needle.includes(w)))) ||
+             (doc && (needle.includes(doc) || doc.split(" ").some((w) => w.length >= 4 && needle.includes(w))));
+    });
+    if (filteredOptions.length === 0) filteredOptions = allOptions;
+
+    const newState: SchedulerState = {
+      phase: "reschedule_list",
+      rescheduleOptions: filteredOptions,
+      reschedulePeriodHint: periodHint ?? undefined,
+      rescheduleDateHint: dayHint,
+      phaseEnteredAt: Date.now(),
+    };
+    store[phone] = newState;
+
+    // Single match → skip list
+    if (filteredOptions.length === 1) {
+      newState.selectedReschedule = filteredOptions[0];
+      // Fast-track: if period or day hint provided, skip reschedule_what and go straight to date selection
+      if (periodHint || dayHint) {
+        newState.reschedulingAppointmentId = filteredOptions[0].id;
+        newState.specialty = { id: filteredOptions[0].specialty_id, label: filteredOptions[0].specialty };
+        newState.doctor = filteredOptions[0].doctor_id ? { id: filteredOptions[0].doctor_id, label: filteredOptions[0].doctor } : null;
+        newState.period = periodHint ?? undefined;
+        store[phone] = newState;
+        return buildDatePhase(args.baseUrl, args.apiKey, store, phone, newState, dayHint);
+      }
+      return enterRescheduleWhat(store, phone, newState, args.baseUrl, args.apiKey);
+    }
+
+    // Multiple → show list (guard timer already set by phaseEnteredAt)
+    await saveSchedulerStore(store);
+    const listOpts = filteredOptions.map((o, i) => ({ id: i + 1, label: o.label }));
+    return { ok: true, response: { reply_text: numberedList("Qual consulta deseja reagendar?", listOpts), phase: "reschedule_list" } };
   }
 
   // Detect cancel intent at any point (outside an active cancel flow)
@@ -1188,6 +1528,8 @@ async function schedulerStep(args: {
       specialty: String(a.specialty_name ?? ""),
       specialty_id: toInt(a.specialty_id as LooseInt),
       doctor: String(a.doctor_name ?? ""),
+      doctor_id: toInt(a.doctor_id as LooseInt),
+      agenda_id: toInt(a.agenda_id as LooseInt),
       label: `${weekdayPt(String(a.data ?? ""))}, ${formatDatePt(String(a.data ?? ""))} ${normalizeTime(String(a.horario ?? ""))} — ${a.specialty_name ?? "Consulta"} com ${a.doctor_name ?? ""}`,
     }));
 
@@ -1236,7 +1578,7 @@ async function schedulerStep(args: {
     if (named?.id) {
       state = { phase: "specialty", dateOptions: options };
       store[phone] = state;
-      return promptDoctorChoice(args.baseUrl, args.apiKey, store, phone, state, named);
+      return promptDoctorChoice(args.baseUrl, args.apiKey, store, phone, state, named, message);
     }
     state = { phase: "specialty", dateOptions: options };
     store[phone] = state;
@@ -1247,7 +1589,7 @@ async function schedulerStep(args: {
   if (state.phase === "specialty") {
     const selected = selectOption(state.dateOptions, message);
     if (selected?.id) {
-      return promptDoctorChoice(args.baseUrl, args.apiKey, store, phone, state, selected);
+      return promptDoctorChoice(args.baseUrl, args.apiKey, store, phone, state, selected, message);
     }
     await saveSchedulerStore(store);
     return { ok: false, response: { reply_text: numberedList("Escolha uma especialidade pelo numero:", state.dateOptions ?? []), phase: state.phase } };
@@ -1255,6 +1597,9 @@ async function schedulerStep(args: {
 
   if (state.phase === "doctor") {
     const options = [...(state.dateOptions ?? []), { label: "Qualquer medico dessa especialidade" }];
+    if (state.phaseEnteredAt && Date.now() - state.phaseEnteredAt < 8000) {
+      return { ok: false, response: { reply_text: numberedList("Escolha um medico:", options), phase: state.phase } };
+    }
     const selected = selectOption(options, message);
     if (!selected) {
       return { ok: false, response: { reply_text: numberedList("Escolha um medico pelo numero:", options), phase: state.phase } };
@@ -1302,6 +1647,9 @@ async function schedulerStep(args: {
   }
 
   if (state.phase === "period") {
+    if (state.phaseEnteredAt && Date.now() - state.phaseEnteredAt < 8000) {
+      return { ok: false, response: { reply_text: periodReply(), phase: state.phase } };
+    }
     const period = normalizePeriod(message);
     if (!period) {
       return { ok: false, response: { reply_text: periodReply(), phase: state.phase } };
@@ -1335,7 +1683,7 @@ async function schedulerStep(args: {
       return {
         ok: false,
         response: {
-          reply_text: `Nao encontrei horarios para ${state.specialty?.label ?? "essa especialidade"} nesse periodo. Escolha outro periodo.\n1) Manha\n2) Tarde\n3) Noite`,
+          reply_text: `Nao encontrei horarios para ${state.specialty?.label ?? "essa especialidade"} nesse periodo. Escolha outro periodo.\n1) Manha\n2) Tarde`,
           phase: state.phase,
         },
       };
@@ -1351,6 +1699,9 @@ async function schedulerStep(args: {
   }
 
   if (state.phase === "date") {
+    if (state.phaseEnteredAt && Date.now() - state.phaseEnteredAt < 8000) {
+      return { ok: false, response: { reply_text: numberedList("Escolha uma data:", state.dateOptions ?? []), phase: state.phase } };
+    }
     const selected = selectOption(state.dateOptions, message);
     if (!selected) {
       return { ok: false, response: { reply_text: numberedList("Escolha uma data pelo numero:", state.dateOptions ?? []), phase: state.phase } };
@@ -1374,7 +1725,7 @@ async function schedulerStep(args: {
         return {
           ok: false,
           response: {
-            reply_text: "Nao encontrei mais datas para esse periodo. Escolha outro periodo.\n1) Manha\n2) Tarde\n3) Noite",
+            reply_text: "Nao encontrei mais datas para esse periodo. Escolha outro periodo.\n1) Manha\n2) Tarde",
             phase: state.phase,
           },
         };
@@ -1576,19 +1927,84 @@ async function schedulerStep(args: {
       return { ok: result.done, response: { reply_text: result.reply_text, phase: result.done ? "done" : state.phase } };
     }
     if (text === "2" || text.includes("convenio")) {
+      state.patientDraft = { ...(state.patientDraft ?? {}), payment_mode: "convenio" };
+
+      // Check if patient already has a carteirinha on file
+      const existingPatient = state.patient ?? {};
+      const existingCarteirinha = existingPatient.carteirinha_id ? String(existingPatient.carteirinha_id) : undefined;
+      if (existingCarteirinha) {
+        const convenioResp = await callBackend({
+          baseUrl: args.baseUrl, apiKey: args.apiKey, method: "GET",
+          path: `/hospital/insurance/by-carteirinha/${encodeURIComponent(existingCarteirinha)}`,
+        });
+        const convenio = (convenioResp.response as { found?: boolean; convenio?: { nome?: string; carteirinha_id?: string } } | null);
+        if (convenio?.found && convenio.convenio?.nome) {
+          const planName = convenio.convenio.nome;
+          const cartId = convenio.convenio.carteirinha_id ?? existingCarteirinha;
+          // Pre-fill and ask for confirmation instead of asking all over again
+          state.patientDraft = {
+            ...state.patientDraft,
+            insurance_name: planName,
+            carteirinha_id: cartId,
+            data_de_expiracao: null,
+          };
+          state.phase = "insurance_confirm";
+          state.phaseEnteredAt = Date.now();
+          store[phone] = state;
+          await saveSchedulerStore(store);
+          return {
+            ok: true,
+            response: {
+              reply_text: `Voce deseja utilizar o seu convenio *${planName}* de carteirinha ${cartId}?\n1) Sim\n2) Nao, usar outro convenio`,
+              phase: state.phase,
+            },
+          };
+        }
+      }
+
+      // No existing insurance — show plan list
       const ACCEPTED_PLANS: SchedulerOption[] = [
         "Unimed", "Amil", "Bradesco", "SulAmerica", "Care Plus",
         "Alice", "Hapvida NotreDame Intermedica", "Prevent Senior",
         "Porto Saude", "Omint",
       ].map((nome) => ({ label: nome, value: nome }));
       state.insuranceOptions = ACCEPTED_PLANS;
-      state.patientDraft = { ...(state.patientDraft ?? {}), payment_mode: "convenio" };
       state.phase = "insurance_plan";
       store[phone] = state;
       await saveSchedulerStore(store);
       return { ok: true, response: { reply_text: numberedList("Qual o seu convenio?", ACCEPTED_PLANS), phase: state.phase } };
     }
     return { ok: false, response: { reply_text: "Como deseja pagar?\n1) Particular\n2) Convenio\nResponda com o numero da opcao.", phase: state.phase } };
+  }
+
+  if (state.phase === "insurance_confirm") {
+    if (state.phaseEnteredAt && Date.now() - state.phaseEnteredAt < 8000) {
+      const plan = state.patientDraft?.insurance_name ?? "seu convenio";
+      const cartId2 = state.patientDraft?.carteirinha_id ?? "";
+      return { ok: false, response: { reply_text: `Voce deseja utilizar o seu convenio *${plan}*${cartId2 ? ` de carteirinha ${cartId2}` : ""}?\n1) Sim\n2) Nao, usar outro convenio`, phase: state.phase } };
+    }
+    const t = normalizeText(message);
+    const yes = t === "1" || t === "sim" || t.startsWith("sim") || t === "s";
+    if (yes) {
+      // Insurance already pre-filled — go straight to booking
+      const result = await finishSchedulerBooking(args.baseUrl, args.apiKey, phone, state);
+      if (result.done) delete store[phone]; else store[phone] = state;
+      await saveSchedulerStore(store);
+      return { ok: result.done, response: { reply_text: result.reply_text, phase: result.done ? "done" : state.phase } };
+    }
+    // Patient wants a different insurance — show plan list
+    const ACCEPTED_PLANS: SchedulerOption[] = [
+      "Unimed", "Amil", "Bradesco", "SulAmerica", "Care Plus",
+      "Alice", "Hapvida NotreDame Intermedica", "Prevent Senior",
+      "Porto Saude", "Omint",
+    ].map((nome) => ({ label: nome, value: nome }));
+    state.insuranceOptions = ACCEPTED_PLANS;
+    state.patientDraft = { ...state.patientDraft, insurance_name: undefined, carteirinha_id: undefined };
+    state.phase = "insurance_plan";
+    state.phaseEnteredAt = Date.now();
+    store[phone] = state;
+    await saveSchedulerStore(store);
+    return { ok: true, response: { reply_text: numberedList("Qual o seu convenio?", ACCEPTED_PLANS), phase: state.phase } };
   }
 
   if (state.phase === "insurance_plan") {
@@ -1956,12 +2372,12 @@ export default defineToolPlugin({
             response: {
               ok: false,
               reason: "missing_period",
-              reply_text: "Qual periodo voce prefere?\n1) Manha\n2) Tarde\n3) Noite",
-              message: "Periodo obrigatorio. Peça para escolher: manha, tarde ou noite.",
+              reply_text: "Qual periodo voce prefere?\n1) Manha\n2) Tarde",
+              message: "Periodo obrigatorio. Peça para escolher: manha ou tarde.",
               choices: [
                 { option_id: "period:morning", value: "morning", label: "Manha" },
                 { option_id: "period:afternoon", value: "afternoon", label: "Tarde" },
-                { option_id: "period:evening", value: "evening", label: "Noite" },
+                { option_id: "period:evening", value: "evening", label: "Tarde" },
               ],
             },
           };
