@@ -186,6 +186,7 @@ SELECT
     a.periodo,
     m.id AS doctor_id,
     m.nome AS doctor_name,
+    e.id AS specialty_id,
     e.nome AS specialty_name
 FROM consulta c
 JOIN paciente p ON p.id = c.id_paciente
